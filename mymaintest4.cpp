@@ -17,7 +17,7 @@ using namespace std;
 double invmatrix(double *A,double *Ainv,int n);
 void invmatrix2(double *A,double *Ainv,int n);
 void LUdecomp(double *A,double *L,double *U,double *P,double *I,int n);
-void SolveSysOEqs(double* L,double* U,double* b,double* x, int n);
+void SolveSysOEqs(double* L,double* U,double* P,double* b,double* x, int n);
 void checkmat(double* A, int n);
 void matvecmult(double* a, double* b, double* c, int row, int col);
 void matrixmult(double* a, double* b, double* c, const int row, const int inner, const int col);
@@ -944,7 +944,7 @@ double* du = (double*) malloc(ndofs*sizeof(double));// zeros(nrdof,1);
       LUdecomp(Kgf,L,U,P,I,nfr);
 
       double* ddu = (double*) malloc(nfr*sizeof(double));
-      SolveSysOEqs(L,U,resf,ddu,nfr);      
+      SolveSysOEqs(L,U,P,resf,ddu,nfr);      
 
       cout<<"ddu="<<'\n';
 	  for (int i=0;i<nfr;i++){
@@ -1270,7 +1270,7 @@ double invmatrix(double *A,double *Ainv,int n)
 
 	    double* A_col = (double*) malloc(n*sizeof(double));
             // matvecmult(P,I_col,I_col,3,3);                                                           
-            SolveSysOEqs(LL,UU,I_col,A_col,n);
+            SolveSysOEqs(LL,UU,PP,I_col,A_col,n);
 
             //jj=0;                                                                                     
             //for(int j=0;j<n;j+=n){                                                                    
@@ -1279,17 +1279,17 @@ double invmatrix(double *A,double *Ainv,int n)
 
             jj=0;
             for(int j=i;j<n*n;j+=n){
-              Ainv0[j]=A_col[jj];
+              Ainv[j]=A_col[jj];
               jj++;
             }
             free(A_col);
 
           }
 
-          cout<<"Ainv0 ="<<'\n';
-          checkmat(Ainv0,n);
+          //cout<<"Ainv0 ="<<'\n';
+          //checkmat(Ainv0,n);
 
-	  matrixmult(PP,Ainv0,Ainv,n,n,n);
+	  //matrixmult(PP,Ainv0,Ainv,n,n,n);
 
 	  cout<<"Ainv ="<<'\n';
           checkmat(Ainv,n);
@@ -1412,13 +1412,15 @@ checkmat(L,n);
   //************************************************************                                       \
                                                                                                         
 
-void SolveSysOEqs(double* L,double* U,double* b,double* x, int n)
+void SolveSysOEqs(double* L,double* U,double* P,double* b0,double* x, int n)
 {
 
 
   double* y = (double*) malloc(n*sizeof(double));
   //double* x = (double*) malloc(n*sizeof(double));                                                        
 
+  double* b = (double*) malloc(n*sizeof(double));
+  matvecmult(P,b0,b,n,n);
 
   //y[0] = b[0]/L[0];                                                                                   
   //double sum;                                                                                          
@@ -1464,6 +1466,7 @@ void SolveSysOEqs(double* L,double* U,double* b,double* x, int n)
   }
 
 
+  free(b);
   //double det=Determinant(a,n);                                                                        \
                                                                                                         
   //CoFactor(a,n,b);                                                                                   \
